@@ -133,6 +133,14 @@ const resetForm = () => {
   $("#birthdate").val("");
   $("#address").val("");
   $("#enrollment").val("");
+  $('#save').prop('disabled', true)
+  $('#update').prop('disabled', true)
+  $('#reset').prop('disabled', true)
+  $('#enrollment').prop('disabled', true)
+  $('#address').prop('disabled', true)
+  $('#birthdate').prop('disabled', true)
+  $('#class').prop('disabled', true)
+  $('#fullname').prop('disabled', true)
   $("#rollno").focus();
 };
 
@@ -144,7 +152,6 @@ const resetForm2 = () => {
   $("#birthdate").val("");
   $("#address").val("");
   $("#enrollment").val("");
-  $("#rollno").focus();
 };
 
 const saveStudent = () => {
@@ -205,13 +212,32 @@ const getData = () => {
     document.getElementById("birthdate").value = data.Birth_Date;
     document.getElementById("address").value = data.Address;
     document.getElementById("enrollment").value = data.Enrollment_Date;
+    $('#enrollment').prop('disabled', false)
+  $('#address').prop('disabled', false)
+  $('#birthdate').prop('disabled', false)
+  $('#class').prop('disabled', false)
+  $('#fullname').prop('disabled', false)
     Fetched = true
     $('#save').prop('disabled', true)
+    $('#update').prop('disabled', false);
+  }
+  else {
+    $('#save').prop('disabled', false);
+    $('#update').prop('disabled', true);
+    $('#reset').prop('disabled', false)
   }
 }
 
 var rollno = document.getElementById("rollno")
 rollno.addEventListener("keydown", (e) => {
-  if (e.key === "Enter")
+  if (e.key === "Enter"||e.key==="Tab")
     getData();
 })
+
+$('input.form-control').on('keyup', function (e) {
+  if (e.key == "Enter") {
+    if ($(this).val()) {
+      $(this).next().focus();
+    }
+  }
+});
