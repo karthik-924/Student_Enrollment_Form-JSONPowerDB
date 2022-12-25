@@ -1,10 +1,18 @@
+var Fetched;
 const loaded = () => {
+  Fetched = false;
   $("#rollno").focus();
+  $('#save').prop('disabled', true)
+  $('#update').prop('disabled', true)
+  $('#reset').prop('disabled', true)
+  $('#enrollment').prop('disabled', true)
+  $('#address').prop('disabled', true)
+  $('#birthdate').prop('disabled', true)
+  $('#class').prop('disabled', true)
+  $('#fullname').prop('disabled', true)
 };
-const getData = () => {
-  console.log("got")
-}
-function validateAndGetFormData() {
+
+const validateAndGetFormData=()=> {
   var rollno = $("#rollno").val();
   if (rollno === "") {
     alert("Student Roll No is required");
@@ -35,16 +43,36 @@ function validateAndGetFormData() {
     $("#class").focus();
     return "";
   }
+  var enrollmentdate = $("#enrollment").val();
+  if (enrollmentdate === "") {
+    alert("Student Birthdate is required");
+    $("#enrollment").focus();
+    return "";
+  }
   var jsonStrObj = {
-    id: empIdVar,
-    name: empNameVar,
-    mobileno: empNumVar,
-    email: empEmailVar,
+    Roll_No: rollno,
+    Full_Name: name,
+    Class: classp,
+    Birth_Date: birthdate,
+    Address: address,
+    Enrollment_Date:enrollmentdate
   };
   return JSON.stringify(jsonStrObj);
 }
+
+const validateAndCheckForData = () => {
+  var rollno = $("#rollno").val();
+  if (rollno === "") {
+    return "";
+  }
+  var jsonStrObj = {
+    Roll_No:rollno,
+  }
+  return JSON.stringify(jsonStrObj)
+}
 // This method is used to create PUT Json request.
-function createPUTRequest(connToken, jsonObj, dbName, relName) {
+
+const createPUTRequest=(connToken, jsonObj, dbName, relName)=>{
   var putRequest =
     "{\n" +
     '"token" : "' +
@@ -63,6 +91,27 @@ function createPUTRequest(connToken, jsonObj, dbName, relName) {
     "}";
   return putRequest;
 }
+const createGETRequest=(connToken, jsonObj, dbName, relName)=>{
+  var getRequest =
+    "{\n" +
+    '"token" : "' +
+    connToken +
+    '",' +
+    '"dbName": "' +
+    dbName +
+    '",\n' +
+    '"cmd" : "GET",\n' +
+    '"rel" : "' +
+    relName +
+    '",' +
+    '"jsonStr": \n' +
+    jsonObj +
+    "\n" +
+    "}";
+  return getRequest;
+}
+
+
 function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
   var url = dbBaseUrl + apiEndPointUrl;
   var jsonObj;
@@ -74,34 +123,95 @@ function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
   });
   return jsonObj;
 }
+
 const resetForm = () => {
-  $("#rollno").focus();
+  Fetched = false
+  $('#save').prop('disabled', false)
   $("#rollno").val("");
   $("#fullname").val("");
   $("#class").val("");
   $("#birthdate").val("");
   $("#address").val("");
   $("#enrollment").val("");
+  $("#rollno").focus();
 };
-const saveEmployee = () => {
+
+const resetForm2 = () => {
+  Fetched = false
+  $('#save').prop('disabled', false)
+  $("#fullname").val("");
+  $("#class").val("");
+  $("#birthdate").val("");
+  $("#address").val("");
+  $("#enrollment").val("");
+  $("#rollno").focus();
+};
+
+const saveStudent = () => {
   var jsonStr = validateAndGetFormData();
   if (jsonStr === "") {
     return;
   }
-  //   var putReqStr = createPUTRequest(
-  //     "90938332|-31949271869526202|90952385",
-  //     jsonStr,
-  //     "Student",
-  //     "Student-Rel"
-  //   );
-  //   alert(putReqStr);
-  //   jQuery.ajaxSetup({ async: false });
-  //   var resultObj = executeCommand(
-  //     putReqStr,
-  //     "http://api.login2explore.com:5577",
-  //     "/api/iml"
-  //   );
-  //   alert(JSON.stringify(resultObj));
-  //   jQuery.ajaxSetup({ async: true });
-  //   resetForm();
+  var putReqStr=createPUTRequest(
+    "90938332|-31949271869526202|90952385",
+    jsonStr,
+    "SCHOOL-DB",
+    "STUDENT-TABLE"
+  );
+    // alert(putReqStr);
+    jQuery.ajaxSetup({ async: false });
+    var resultObj = executeCommand(
+      putReqStr,
+      "http://api.login2explore.com:5577",
+      "/api/iml"
+    );
+    alert(JSON.stringify(resultObj));
+    jQuery.ajaxSetup({ async: true });
+    resetForm();
 };
+
+const getData = () => {
+  var jsonStr = validateAndCheckForData();
+  if (jsonStr === "") {
+    if (Fetched)
+    resetForm();
+    return;
+  }
+  $('#enrollment').prop('disabled', false)
+  $('#address').prop('disabled', false)
+  $('#birthdate').prop('disabled', false)
+  $('#class').prop('disabled', false)
+  $('#fullname').prop('disabled', false)
+  console.log(Fetched)
+  if (Fetched)
+    resetForm2();
+  var getReqStr=createGETRequest(
+        "90938332|-31949271869526202|90952385",
+        jsonStr,
+        "SCHOOL-DB",
+        "STUDENT-TABLE"
+  );
+  jQuery.ajaxSetup({ async: false });
+    var resultObj = executeCommand(
+      getReqStr,
+      "http://api.login2explore.com:5577",
+      "/api/irl"
+  );
+  if (resultObj.data!=='') {
+    data = JSON.parse(resultObj.data);
+    jQuery.ajaxSetup({ async: true });
+    document.getElementById("fullname").value = data.Full_Name;
+    document.getElementById("class").value = data.Class;
+    document.getElementById("birthdate").value = data.Birth_Date;
+    document.getElementById("address").value = data.Address;
+    document.getElementById("enrollment").value = data.Enrollment_Date;
+    Fetched = true
+    $('#save').prop('disabled', true)
+  }
+}
+
+var rollno = document.getElementById("rollno")
+rollno.addEventListener("keydown", (e) => {
+  if (e.key === "Enter")
+    getData();
+})
