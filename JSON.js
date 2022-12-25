@@ -1,6 +1,9 @@
 const loaded = () => {
   $("#rollno").focus();
 };
+const getData = () => {
+  console.log("got")
+}
 function validateAndGetFormData() {
   var rollno = $("#rollno").val();
   if (rollno === "") {
